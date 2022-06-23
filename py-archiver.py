@@ -14,7 +14,9 @@ from boxsdk import BoxAPIException
 # from slack_sdk import WebClient
 # from slack_sdk.errors import SlackApiError
 
-dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
+abs_dirpath = os.path.dirname(os.path.abspath(__file__))
+# dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+dotenv_path = os.path.join(abs_dirpath, ".env")
 load_dotenv(dotenv_path)
 
 # SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -55,12 +57,9 @@ def argument_parser():
     return params
 
 def archive_files(dir_name):
-    dir_path = os.path.join(os.path.dirname(__file__), dir_name)
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
-
     # get target files
-    file_pattern = f'{os.path.dirname(__file__)}/{dir_name}-*'
+    # file_pattern = f'{os.path.dirname(__file__)}/{dir_name}-*'
+    file_pattern = f'{abs_dirpath}/{dir_name}-*'
     archive_files = glob.glob(file_pattern)
 
     if not archive_files:
@@ -71,15 +70,21 @@ def archive_files(dir_name):
             print(item)
         print('========================')
 
+    # dir_path = os.path.join(os.path.dirname(__file__), dir_name)
+    dir_path = os.path.join(abs_dirpath, dir_name)
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+
     # move target files
     for item in archive_files:
         shutil.move(item, dir_path)
 
-    print(f'Target files have been moved to {dir_path}')
+    print(f'Target files have been moved to {dir_path}/')
 
     # archive directory to .zip
     if not os.path.exists(f'{dir_path}.zip'):
-        shutil.make_archive(dir_path, 'zip', os.path.dirname(__file__), dir_name)
+        # shutil.make_archive(dir_path, 'zip', os.path.dirname(__file__), dir_name)
+        shutil.make_archive(dir_path, 'zip', abs_dirpath, dir_name)
         print(f'{dir_path}.zip is created. Archive done')
     else:
         sys.exit(f'Archive file "{dir_path}.zip" already exists')
