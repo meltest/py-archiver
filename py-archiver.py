@@ -92,17 +92,31 @@ def upload_archive(target_archive, config_file):
     auth = JWTAuth.from_settings_file(config_file)
     client = Client(auth)
 
-    try: 
-        folder_id = BOX_FOLDER_ID
-        new_file = client.folder(folder_id).upload(target_archive)
-        print(f'File "{new_file.name}" uploaded to Box with file ID {new_file.id}')
+    file_size = os.path.getsize(target_archive)
+    file_size_mb = file_size / (1024 * 1024)
 
-        # folder = client.folder(folder_id).get()
-        # print(f'Folder "{folder.name}" has {folder.item_collection["total_count"]} items in it')
-    except BoxAPIException as e:
-        # print(f"Got an error: {e.response['error']}")
-        print(f"Got an error: {e.status}")
-        sys.exit()
+    folder_id = BOX_FOLDER_ID
+    # when target file is over 50 MB use chunked upload
+    if file_size_mb > 50:
+        try:
+            print(f'File size is over 50MB. Using chunked upload...')
+            chunked_uploader = client.folder(folder_id).get_chunked_uploader(target_archive)
+            uploaded_file = chunked_uploader.start()
+            print(f'File "{uploaded_file.name}" uploaded to Box with file ID {uploaded_file.id}')
+        except BoxAPIException as e:
+            print(f"Got an error. Status: {e.status}, Context: {e.context_info}.")
+            sys.exit()
+    # ohterwise, use normal upload
+    else:
+        try: 
+            new_file = client.folder(folder_id).upload(target_archive)
+            print(f'File "{new_file.name}" uploaded to Box with file ID {new_file.id}')
+
+            # folder = client.folder(folder_id).get()
+            # print(f'Folder "{folder.name}" has {folder.item_collection["total_count"]} items in it')
+        except BoxAPIException as e:
+            print(f"Got an error. Status: {e.status}, Context: {e.context_info}.")
+            sys.exit()
 
 params = argument_parser()
 target_month = params['m']
