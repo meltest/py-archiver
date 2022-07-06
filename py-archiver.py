@@ -3,7 +3,6 @@ import os
 import sys
 import shutil
 import glob
-import requests
 import datetime
 import monthdelta
 from argparse import ArgumentParser
@@ -15,7 +14,6 @@ from boxsdk import BoxAPIException
 # from slack_sdk.errors import SlackApiError
 
 abs_dirpath = os.path.dirname(os.path.abspath(__file__))
-# dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 dotenv_path = os.path.join(abs_dirpath, ".env")
 load_dotenv(dotenv_path)
 
@@ -58,7 +56,6 @@ def argument_parser():
 
 def archive_files(dir_name):
     # get target files
-    # file_pattern = f'{os.path.dirname(__file__)}/{dir_name}-*'
     file_pattern = f'{abs_dirpath}/{dir_name}-*'
     archive_files = glob.glob(file_pattern)
 
@@ -70,7 +67,6 @@ def archive_files(dir_name):
             print(item)
         print('========================')
 
-    # dir_path = os.path.join(os.path.dirname(__file__), dir_name)
     dir_path = os.path.join(abs_dirpath, dir_name)
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
@@ -83,7 +79,6 @@ def archive_files(dir_name):
 
     # archive directory to .zip
     if not os.path.exists(f'{dir_path}.zip'):
-        # shutil.make_archive(dir_path, 'zip', os.path.dirname(__file__), dir_name)
         shutil.make_archive(dir_path, 'zip', abs_dirpath, dir_name)
         print(f'{dir_path}.zip is created. Archive done')
     else:
@@ -93,7 +88,6 @@ def archive_files(dir_name):
 
 def upload_archive(target_archive, config_file):
     # targer_archive is absolute path to file
-    # auth = JWTAuth.from_settings_file(f'{os.path.dirname(__file__)}/.config.json')
     auth = JWTAuth.from_settings_file(config_file)
     client = Client(auth)
 
@@ -116,9 +110,6 @@ def upload_archive(target_archive, config_file):
         try: 
             new_file = client.folder(folder_id).upload(target_archive)
             print(f'File "{new_file.name}" uploaded to Box with file ID {new_file.id}')
-
-            # folder = client.folder(folder_id).get()
-            # print(f'Folder "{folder.name}" has {folder.item_collection["total_count"]} items in it')
         except BoxAPIException as e:
             print(f"Got an error. Status: {e.status}, Context: {e.context_info}.")
             sys.exit()
